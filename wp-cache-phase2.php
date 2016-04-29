@@ -733,6 +733,10 @@ function wp_cache_http2_preload_headers($puffer)
 
 function wp_cache_url_prealoadable($url) {
 	$url = str_replace(["'", '"'], '', $url);
+	if (!strlen($url)) {
+		return false;
+	}
+	
 	if (substr($url, 0, 1) == '/') {
 		return $url;
 	}
