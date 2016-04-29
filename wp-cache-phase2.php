@@ -383,7 +383,7 @@ function wp_cache_get_ob(&$buffer) {
 	global $wp_cache_404, $gzsize, $supercacheonly;
 	global $blog_cache_dir, $wp_cache_request_uri, $wp_supercache_cache_list;
 	global $wp_cache_not_logged_in, $wp_cache_object_cache, $cache_max_time;
-	global $wp_cache_is_home, $wp_cache_front_page_checks, $wp_cache_mfunc_enabled;
+	global $wp_cache_is_home, $wp_cache_front_page_checks, $wp_cache_mfunc_enabled, $wp_super_cache_send_link_headers;
 
 	if ( isset( $wp_cache_mfunc_enabled ) == false )
 		$wp_cache_mfunc_enabled = 0;
@@ -540,6 +540,11 @@ function wp_cache_get_ob(&$buffer) {
 	$buffer = apply_filters( 'wpsupercache_buffer', $buffer );
 	wp_cache_append_tag( $buffer );
 
+	if ($wp_super_cache_send_link_headers) {
+		$wp_cache_meta[ 'headers' ][ 'Link' ] = wp_cache_http2_preload_headers($buffer);
+	}
+
+
 	/*
 	 * Dynamic content enabled: write the buffer to a file and then process any templates found using
 	 * the wpsc_cachedata filter. Buffer is then returned to the visitor.
@@ -684,6 +689,57 @@ function wp_cache_get_ob(&$buffer) {
 		wp_cache_debug( "Sending buffer to browser", 5 );
 		return $buffer;
 	}
+}
+
+function wp_cache_http2_preload_headers($puffer) 
+{
+    if (!headers_sent()) {
+    	
+        preg_match_all('/<link\s[^>]*href=(\"??)([^\" >]*?)\\1[^>]*(.*)\/>/siU', $puffer, $styleSheets);
+        preg_match_all('/<img\s[^>]*src=(\"??)([^\" >]*?)\\1[^>]*(.*)\/>/siU', $puffer, $images);
+        preg_match_all('/<script\s[^>]*src=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/script>/siU', $puffer, $javaScripts);
+
+        $header = 'Link: ';
+        //images
+        if (is_array($images[2])) {
+            foreach ($images[2] as $preloadLink) {
+            	if (wp_cache_url_prealoadable($preloadLink)) {
+	                $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+	            }
+            }
+        }
+
+        //css
+        if (is_array($$styleSheets[2])) {
+            foreach ($$styleSheets[2] as $preloadLink) {
+                if (strpos($preloadLink, '.css') && wp_cache_url_prealoadable($preloadLink)) {
+                    $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+                }
+            }
+        }
+
+        //javascript
+        if (is_array($javaScripts[2])) {
+            foreach ($javaScripts[2] as $preloadLink) {
+                if (strpos($preloadLink, '.js') && wp_cache_url_prealoadable($preloadLink)) {
+                    $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+                }
+            }
+        }
+
+        return $header;
+    }   
+}
+
+function wp_cache_url_prealoadable($url) {
+	$url = str_replace(["'", '"'], '', $url);
+	if (substr($url, 0, 1) == '/') {
+		return $url;
+	}
+	else if (strpos($url, '://' . $_SERVER['HTTP_HOST'])) {
+		return $url;
+	}
+	return false;
 }
 
 function wp_cache_phase2_clean_cache($file_prefix) {
