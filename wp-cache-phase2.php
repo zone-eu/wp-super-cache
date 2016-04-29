@@ -710,8 +710,8 @@ function wp_cache_http2_preload_headers($puffer)
         }
 
         //css
-        if (is_array($$styleSheets[2])) {
-            foreach ($$styleSheets[2] as $preloadLink) {
+        if (is_array($styleSheets[2])) {
+            foreach ($styleSheets[2] as $preloadLink) {
                 if (strpos($preloadLink, '.css') && wp_cache_url_prealoadable($preloadLink)) {
                     $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
                 }
@@ -736,7 +736,7 @@ function wp_cache_url_prealoadable($url) {
 	if (!strlen($url)) {
 		return false;
 	}
-	
+
 	if (substr($url, 0, 1) == '/') {
 		return $url;
 	}
