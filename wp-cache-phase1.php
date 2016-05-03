@@ -121,7 +121,7 @@ function wp_super_cache_init() {
 function wp_cache_serve_cache_file() {
 	global $key, $blogcacheid, $wp_cache_request_uri, $file_prefix, $blog_cache_dir, $meta_file, $cache_file, $cache_filename, $meta_pathname, $wp_cache_gzip_encoding, $meta;
 	global $wp_cache_object_cache, $cache_compression, $wp_cache_slash_check, $wp_supercache_304, $wp_cache_home_path, $wp_cache_no_cache_for_get;
-	global $wp_cache_disable_utf8, $wp_cache_mfunc_enabled;
+	global $wp_cache_disable_utf8, $wp_cache_mfunc_enabled, $wp_super_cache_send_link_headers;
 
 	extract( wp_super_cache_init() );
 
@@ -228,7 +228,14 @@ function wp_cache_serve_cache_file() {
 				header( 'Content-Length: ' . $size );
 			}
 
-			header(wp_cache_http2_preload_headers($cachefiledata));
+			if ($wp_super_cache_send_link_headers) {
+				if ( $wp_cache_gzip_encoding ) {
+					header(wp_cache_http2_preload_headers(gzdecode($cachefiledata)));
+				}
+				else {
+					header(wp_cache_http2_preload_headers($cachefiledata));
+				}
+			}
 
 			// don't try to match modified dates if using dynamic code.
 			if ( $wp_cache_mfunc_enabled == 0 && $wp_supercache_304 ) {
