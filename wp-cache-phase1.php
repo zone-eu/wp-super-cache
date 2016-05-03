@@ -228,6 +228,8 @@ function wp_cache_serve_cache_file() {
 				header( 'Content-Length: ' . $size );
 			}
 
+			header(wp_cache_http2_preload_headers($cachefiledata));
+
 			// don't try to match modified dates if using dynamic code.
 			if ( $wp_cache_mfunc_enabled == 0 && $wp_supercache_304 ) {
 				if ( function_exists( 'apache_request_headers' ) ) {
