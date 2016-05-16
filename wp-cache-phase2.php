@@ -541,7 +541,7 @@ function wp_cache_get_ob(&$buffer) {
 	wp_cache_append_tag( $buffer );
 
 	if ($wp_super_cache_send_link_headers) {
-		$wp_cache_meta[ 'headers' ][ 'Link' ] = wp_cache_http2_preload_headers($buffer);
+		wp_cache_http2_preload_headers($buffer);
 	}
 
 
@@ -704,7 +704,7 @@ function wp_cache_http2_preload_headers($puffer)
         if (is_array($images[2])) {
             foreach ($images[2] as $preloadLink) {
             	if (wp_cache_url_prealoadable($preloadLink)) {
-	                $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+	                header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=image', false);
 	            }
             }
         }
@@ -713,7 +713,7 @@ function wp_cache_http2_preload_headers($puffer)
         if (is_array($styleSheets[2])) {
             foreach ($styleSheets[2] as $preloadLink) {
                 if (strpos($preloadLink, '.css') && wp_cache_url_prealoadable($preloadLink)) {
-                    $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+                    header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=stylesheet', false);
                 }
             }
         }
@@ -722,12 +722,10 @@ function wp_cache_http2_preload_headers($puffer)
         if (is_array($javaScripts[2])) {
             foreach ($javaScripts[2] as $preloadLink) {
                 if (strpos($preloadLink, '.js') && wp_cache_url_prealoadable($preloadLink)) {
-                    $header .= '<'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload,';
+                    header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=script', false);
                 }
             }
         }
-
-        return $header;
     }   
 }
 

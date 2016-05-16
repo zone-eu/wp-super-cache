@@ -230,10 +230,10 @@ function wp_cache_serve_cache_file() {
 
 			if ($wp_super_cache_send_link_headers) {
 				if ( $wp_cache_gzip_encoding ) {
-					header(wp_cache_http2_preload_headers(gzdecode($cachefiledata)));
+					wp_cache_http2_preload_headers(gzdecode($cachefiledata));
 				}
 				else {
-					header(wp_cache_http2_preload_headers($cachefiledata));
+					wp_cache_http2_preload_headers($cachefiledata);
 				}
 			}
 
