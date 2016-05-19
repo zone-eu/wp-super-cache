@@ -700,14 +700,6 @@ function wp_cache_http2_preload_headers($puffer)
         preg_match_all('/<script\s[^>]*src=(\"??)([^\" >]*?)\\1[^>]*>(.*)<\/script>/siU', $puffer, $javaScripts);
 
         $header = 'Link: ';
-        //images
-        if (is_array($images[2])) {
-            foreach ($images[2] as $preloadLink) {
-            	if (wp_cache_url_prealoadable($preloadLink)) {
-	                header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=image', false);
-	            }
-            }
-        }
 
         //css
         if (is_array($styleSheets[2])) {
@@ -724,6 +716,15 @@ function wp_cache_http2_preload_headers($puffer)
                 if (strpos($preloadLink, '.js') && wp_cache_url_prealoadable($preloadLink)) {
                     header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=script', false);
                 }
+            }
+        }
+
+        //images
+        if (is_array($images[2])) {
+            foreach ($images[2] as $preloadLink) {
+            	if (wp_cache_url_prealoadable($preloadLink)) {
+	                header('Link: <'.wp_cache_url_prealoadable($preloadLink).'>; rel=preload; as=image', false);
+	            }
             }
         }
     }   
